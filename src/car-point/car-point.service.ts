@@ -58,8 +58,11 @@ export class CarPointService {
       reliabilityScore + depreciationScore +
       transmissionScore + driveScore + engineScore;
 
+    const qualityScore = this.scoringService.clampScore(totalScore);
+
     return {
-      qualityScore: this.scoringService.clampScore(totalScore),
+      qualityScore,
+      qualityStatus: this.scoringService.getQualityStatus(qualityScore),
       price: priceInfo,
       scoreBreakdown: {
         mileageScore,

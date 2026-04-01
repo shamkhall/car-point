@@ -17,6 +17,7 @@ export class PriceInfoDto {
 
 export class CarPointResponseDto {
   qualityScore: number;
+  qualityStatus: string;
   price: PriceInfoDto;
   scoreBreakdown: ScoreBreakdownDto;
 }

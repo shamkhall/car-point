@@ -26,8 +26,9 @@ message CarPointRequest {
 
 message CarPointResponse {
   int32 quality_score = 1;
-  PriceInfo price = 2;
-  ScoreBreakdown score_breakdown = 3;
+  string quality_status = 2;
+  PriceInfo price = 3;
+  ScoreBreakdown score_breakdown = 4;
 }
 
 message PriceInfo {

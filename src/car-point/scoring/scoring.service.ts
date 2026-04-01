@@ -47,4 +47,10 @@ export class ScoringService {
   clampScore(total: number): number {
     return Math.max(1, Math.min(100, Math.round(total)));
   }
+
+  getQualityStatus(score: number): string {
+    if (score >= 71) return 'Excellent';
+    if (score >= 41) return 'Good';
+    return 'Poor';
+  }
 }

@@ -84,4 +84,21 @@ describe('ScoringService', () => {
       expect(service.clampScore(72)).toBe(72);
     });
   });
+
+  describe('getQualityStatus', () => {
+    it('should return Excellent for 71-100', () => {
+      expect(service.getQualityStatus(71)).toBe('Excellent');
+      expect(service.getQualityStatus(100)).toBe('Excellent');
+    });
+
+    it('should return Good for 41-70', () => {
+      expect(service.getQualityStatus(41)).toBe('Good');
+      expect(service.getQualityStatus(70)).toBe('Good');
+    });
+
+    it('should return Poor for 1-40', () => {
+      expect(service.getQualityStatus(1)).toBe('Poor');
+      expect(service.getQualityStatus(40)).toBe('Poor');
+    });
+  });
 });
