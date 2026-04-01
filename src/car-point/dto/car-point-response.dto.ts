@@ -12,7 +12,7 @@ export class ScoreBreakdownDto {
 
 export class PriceInfoDto {
   listed: number;
-  average: number;
+  average: number | null;
   deviation: number;
 }
 
