@@ -1,3 +1,49 @@
 syntax = "proto3";
 
 package carpoint;
+
+service CarPointService {
+  rpc GetCarPoint (CarPointRequest) returns (CarPointResponse);
+}
+
+message CarPointRequest {
+  string brand = 1;
+  string model = 2;
+  int32 year = 3;
+  string body_type = 4;
+  string color = 5;
+  string engine = 6;
+  int32 mileage = 7;
+  string transmission = 8;
+  string drive = 9;
+  bool is_new = 10;
+  int32 number_of_seats = 11;
+  string condition = 12;
+  string market = 13;
+  string city = 14;
+  double price = 15;
+}
+
+message CarPointResponse {
+  int32 quality_score = 1;
+  PriceInfo price = 2;
+  ScoreBreakdown score_breakdown = 3;
+}
+
+message PriceInfo {
+  double listed = 1;
+  double average = 2;
+  double deviation = 3;
+}
+
+message ScoreBreakdown {
+  int32 mileage_score = 1;
+  int32 age_score = 2;
+  int32 reliability_score = 3;
+  int32 condition_score = 4;
+  int32 safety_score = 5;
+  int32 depreciation_score = 6;
+  int32 transmission_score = 7;
+  int32 drive_score = 8;
+  int32 engine_score = 9;
+}
