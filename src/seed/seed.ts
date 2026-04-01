@@ -91,31 +91,61 @@ const NEW_MAP: Record<string, boolean> = {
   xeyr: false,
 };
 
+function getPriceFilename(dataDir: string): string {
+  // Support both old (turbo.csv) and new (turbo_az_full.csv) datasets
+  const fullPath = path.join(dataDir, 'turbo_az_full.csv');
+  const oldPath = path.join(dataDir, 'turbo.csv');
+  if (fs.existsSync(fullPath)) return fullPath;
+  return oldPath;
+}
+
 async function seedPrices(db: mongoose.Connection, dataDir: string) {
   const collection = db.collection('car_prices');
   await collection.deleteMany({});
 
-  const rows = parseCsv(path.join(dataDir, 'turbo.csv'));
+  const priceFile = getPriceFilename(dataDir);
+  const rows = parseCsv(priceFile);
+  const isNewFormat = rows.length > 0 && 'Band' in rows[0];
+
   const docs = rows
     .filter((row) => row['Price'] && parseFloat(row['Price']) > 0)
-    .filter((row) => row['Currency'] === 'AZN') // only AZN prices
-    .map((row) => ({
-      brand: (row['Brand'] ?? '').toLowerCase(),
-      model: (row['Model'] ?? '').toLowerCase(),
-      year: parseInt(row['Year'], 10),
-      bodyType: (row['Body Type'] ?? '').toLowerCase(),
-      engine: FUEL_MAP[(row['Fuel Type'] ?? '').toLowerCase()] ?? (row['Fuel Type'] ?? '').toLowerCase(),
-      transmission: TRANSMISSION_MAP[(row['Transmission'] ?? '').toLowerCase()] ?? (row['Transmission'] ?? '').toLowerCase(),
-      drive: DRIVE_MAP[(row['Drive Type'] ?? '').toLowerCase()] ?? (row['Drive Type'] ?? '').toUpperCase(),
-      color: (row['Color'] ?? '').toLowerCase(),
-      city: (row['City'] ?? '').toLowerCase(),
-      price: parseFloat(row['Price']),
-      mileage: parseDistance(row['Distance'] ?? '0'),
-    }));
+    .filter((row) => row['Currency'] === 'AZN')
+    .map((row) => {
+      if (isNewFormat) {
+        // HuggingFace vrashad/turbo_az format
+        return {
+          brand: (row['Band'] ?? '').toLowerCase(),
+          model: (row['Model'] ?? '').toLowerCase(),
+          year: parseInt(row['Year'], 10),
+          bodyType: (row['Ban type'] ?? '').toLowerCase(),
+          engine: FUEL_MAP[(row['Fuel type'] ?? '').toLowerCase()] ?? (row['Fuel type'] ?? '').toLowerCase(),
+          transmission: TRANSMISSION_MAP[(row['Box'] ?? '').toLowerCase()] ?? (row['Box'] ?? '').toLowerCase(),
+          drive: DRIVE_MAP[(row['Gear'] ?? '').toLowerCase()] ?? (row['Gear'] ?? '').toUpperCase(),
+          color: (row['Color'] ?? '').toLowerCase(),
+          city: '',
+          price: parseFloat(row['Price']),
+          mileage: 0,
+        };
+      }
+      // Old turbo.csv format
+      return {
+        brand: (row['Brand'] ?? '').toLowerCase(),
+        model: (row['Model'] ?? '').toLowerCase(),
+        year: parseInt(row['Year'], 10),
+        bodyType: (row['Body Type'] ?? '').toLowerCase(),
+        engine: FUEL_MAP[(row['Fuel Type'] ?? '').toLowerCase()] ?? (row['Fuel Type'] ?? '').toLowerCase(),
+        transmission: TRANSMISSION_MAP[(row['Transmission'] ?? '').toLowerCase()] ?? (row['Transmission'] ?? '').toLowerCase(),
+        drive: DRIVE_MAP[(row['Drive Type'] ?? '').toLowerCase()] ?? (row['Drive Type'] ?? '').toUpperCase(),
+        color: (row['Color'] ?? '').toLowerCase(),
+        city: (row['City'] ?? '').toLowerCase(),
+        price: parseFloat(row['Price']),
+        mileage: parseDistance(row['Distance'] ?? '0'),
+      };
+    });
 
   if (docs.length > 0) {
     await collection.insertMany(docs);
-    console.log(`Seeded ${docs.length} price records`);
+    console.log(`Seeded ${docs.length} price records from ${path.basename(priceFile)}`);
   }
 }
 
@@ -158,7 +188,9 @@ async function seedReliability(db: mongoose.Connection, dataDir: string) {
 async function seedDepreciation(db: mongoose.Connection, dataDir: string) {
   // Calculate depreciation from turbo.az data:
   // For each brand+model, compare avg price of newer cars (0-2 years old) vs older (5-7 years old)
-  const rows = parseCsv(path.join(dataDir, 'turbo.csv'));
+  const priceFile = getPriceFilename(dataDir);
+  const rows = parseCsv(priceFile);
+  const isNewFormat = rows.length > 0 && 'Band' in rows[0];
   const currentYear = new Date().getFullYear();
 
   const pricesByBrandModel: Record<string, { newPrices: number[]; oldPrices: number[] }> = {};
@@ -167,7 +199,7 @@ async function seedDepreciation(db: mongoose.Connection, dataDir: string) {
     if (!row['Price'] || parseFloat(row['Price']) <= 0) continue;
     if (row['Currency'] !== 'AZN') continue;
 
-    const brand = (row['Brand'] ?? '').toLowerCase();
+    const brand = (isNewFormat ? row['Band'] : row['Brand'] ?? '').toLowerCase();
     const model = (row['Model'] ?? '').toLowerCase();
     const year = parseInt(row['Year'], 10);
     const price = parseFloat(row['Price']);
