@@ -4,7 +4,6 @@ import {
   DRIVE_SCORES,
   ENGINE_SCORES,
   RELIABILITY_TIER_SCORES,
-  SAFETY_STAR_SCORES,
   getDepreciationScore,
 } from './scoring.config.js';
 
@@ -29,14 +28,9 @@ describe('ScoringConfig', () => {
     expect(ENGINE_SCORES['LPG']).toBe(1);
   });
 
-  it('should have reliability tier scores with max of 15', () => {
-    expect(RELIABILITY_TIER_SCORES['S']).toBe(15);
-    expect(RELIABILITY_TIER_SCORES['D']).toBe(3);
-  });
-
-  it('should have safety star scores with max of 10', () => {
-    expect(SAFETY_STAR_SCORES[5]).toBe(10);
-    expect(SAFETY_STAR_SCORES[1]).toBe(2);
+  it('should have reliability tier scores with max of 20, min of 4', () => {
+    expect(RELIABILITY_TIER_SCORES['S']).toBe(20);
+    expect(RELIABILITY_TIER_SCORES['D']).toBe(4);
   });
 
   it('should return correct depreciation score for retention >= 70', () => {

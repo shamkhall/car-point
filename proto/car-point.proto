@@ -41,9 +41,8 @@ message ScoreBreakdown {
   int32 age_score = 2;
   int32 reliability_score = 3;
   int32 condition_score = 4;
-  int32 safety_score = 5;
-  int32 depreciation_score = 6;
-  int32 transmission_score = 7;
-  int32 drive_score = 8;
-  int32 engine_score = 9;
+  int32 depreciation_score = 5;
+  int32 transmission_score = 6;
+  int32 drive_score = 7;
+  int32 engine_score = 8;
 }

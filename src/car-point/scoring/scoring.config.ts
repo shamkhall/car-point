@@ -25,22 +25,12 @@ export const ENGINE_SCORES: Record<string, number> = {
 };
 
 export const RELIABILITY_TIER_SCORES: Record<string, number> = {
-  S: 15,
-  A: 12,
-  B: 9,
-  C: 6,
-  D: 3,
+  S: 20,
+  A: 16,
+  B: 12,
+  C: 8,
+  D: 4,
 };
-
-export const SAFETY_STAR_SCORES: Record<number, number> = {
-  5: 10,
-  4: 8,
-  3: 6,
-  2: 4,
-  1: 2,
-};
-
-export const SAFETY_DEFAULT_SCORE = 5;
 
 export function getDepreciationScore(retentionPercent: number): number {
   if (retentionPercent >= 70) return 10;

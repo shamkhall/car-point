@@ -1,7 +1,6 @@
 import { CarPointService } from './car-point.service.js';
 import { ScoringService } from './scoring/scoring.service.js';
 import { ReliabilityService } from './reliability/reliability.service.js';
-import { SafetyService } from './safety/safety.service.js';
 import { DepreciationService } from './depreciation/depreciation.service.js';
 import { PricingService } from './pricing/pricing.service.js';
 
@@ -9,7 +8,6 @@ describe('CarPointService', () => {
   let service: CarPointService;
   let scoringService: ScoringService;
   let reliabilityService: jest.Mocked<ReliabilityService>;
-  let safetyService: jest.Mocked<SafetyService>;
   let depreciationService: jest.Mocked<DepreciationService>;
   let pricingService: jest.Mocked<PricingService>;
 
@@ -17,11 +15,7 @@ describe('CarPointService', () => {
     scoringService = new ScoringService();
 
     reliabilityService = {
-      getReliabilityScore: jest.fn().mockResolvedValue(15),
-    } as any;
-
-    safetyService = {
-      getSafetyScore: jest.fn().mockResolvedValue(10),
+      getReliabilityScore: jest.fn().mockResolvedValue(20),
     } as any;
 
     depreciationService = {
@@ -39,7 +33,6 @@ describe('CarPointService', () => {
     service = new CarPointService(
       scoringService,
       reliabilityService,
-      safetyService,
       depreciationService,
       pricingService,
     );
@@ -70,8 +63,7 @@ describe('CarPointService', () => {
     expect(result.price.average).toBe(18500);
     expect(result.price.deviation).toBe(-12.43);
     expect(result.scoreBreakdown.mileageScore).toBeDefined();
-    expect(result.scoreBreakdown.reliabilityScore).toBe(15);
-    expect(result.scoreBreakdown.safetyScore).toBe(10);
+    expect(result.scoreBreakdown.reliabilityScore).toBe(20);
     expect(result.scoreBreakdown.depreciationScore).toBe(10);
   });
 
@@ -94,14 +86,13 @@ describe('CarPointService', () => {
       price: 35000,
     });
 
-    expect(result.scoreBreakdown.mileageScore).toBe(20);
+    expect(result.scoreBreakdown.mileageScore).toBe(25);
     expect(result.scoreBreakdown.ageScore).toBe(15);
     expect(result.scoreBreakdown.conditionScore).toBe(15);
   });
 
   it('should clamp score to 1-100', async () => {
-    reliabilityService.getReliabilityScore.mockResolvedValue(15);
-    safetyService.getSafetyScore.mockResolvedValue(10);
+    reliabilityService.getReliabilityScore.mockResolvedValue(20);
     depreciationService.getDepreciationScore.mockResolvedValue(10);
 
     const result = await service.getCarPoint({

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ScoringService } from './scoring/scoring.service.js';
 import { ReliabilityService } from './reliability/reliability.service.js';
-import { SafetyService } from './safety/safety.service.js';
 import { DepreciationService } from './depreciation/depreciation.service.js';
 import { PricingService } from './pricing/pricing.service.js';
 import { CarPointRequestDto } from './dto/car-point-request.dto.js';
@@ -12,7 +11,6 @@ export class CarPointService {
   constructor(
     private readonly scoringService: ScoringService,
     private readonly reliabilityService: ReliabilityService,
-    private readonly safetyService: SafetyService,
     private readonly depreciationService: DepreciationService,
     private readonly pricingService: PricingService,
   ) {}
@@ -20,10 +18,9 @@ export class CarPointService {
   async getCarPoint(request: CarPointRequestDto): Promise<CarPointResponseDto> {
     const currentYear = new Date().getFullYear();
 
-    const [reliabilityScore, safetyScore, depreciationScore, priceInfo] =
+    const [reliabilityScore, depreciationScore, priceInfo] =
       await Promise.all([
         this.reliabilityService.getReliabilityScore(request.brand, request.model),
-        this.safetyService.getSafetyScore(request.brand, request.model),
         this.depreciationService.getDepreciationScore(request.brand, request.model),
         this.pricingService.getPriceInfo({
           brand: request.brand,
@@ -42,7 +39,7 @@ export class CarPointService {
     let conditionScore: number;
 
     if (request.isNew) {
-      mileageScore = 20;
+      mileageScore = 25;
       ageScore = 15;
       conditionScore = 15;
     } else {
@@ -58,7 +55,7 @@ export class CarPointService {
     const engineScore = this.scoringService.calculateEngineScore(request.engine);
 
     const totalScore = mileageScore + ageScore + conditionScore +
-      reliabilityScore + safetyScore + depreciationScore +
+      reliabilityScore + depreciationScore +
       transmissionScore + driveScore + engineScore;
 
     return {
@@ -69,7 +66,6 @@ export class CarPointService {
         ageScore,
         reliabilityScore,
         conditionScore,
-        safetyScore,
         depreciationScore,
         transmissionScore,
         driveScore,

@@ -10,13 +10,13 @@ import {
 export class ScoringService {
   calculateMileageScore(mileage: number, year: number, currentYear: number): number {
     const age = currentYear - year;
-    if (age <= 0) return 20;
+    if (age <= 0) return 25;
 
     const kmPerYear = mileage / age;
-    if (kmPerYear <= 10000) return 20;
+    if (kmPerYear <= 10000) return 25;
     if (kmPerYear >= 40000) return 0;
 
-    const score = 20 - ((kmPerYear - 10000) / 30000) * 20;
+    const score = 25 - ((kmPerYear - 10000) / 30000) * 25;
     return Math.round(score * 100) / 100;
   }
 

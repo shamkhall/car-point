@@ -8,8 +8,8 @@ describe('ScoringService', () => {
   });
 
   describe('calculateMileageScore', () => {
-    it('should return 20 for 10k km/year or less', () => {
-      expect(service.calculateMileageScore(30000, 2023, 2026)).toBe(20);
+    it('should return 25 for 10k km/year or less', () => {
+      expect(service.calculateMileageScore(30000, 2023, 2026)).toBe(25);
     });
 
     it('should return 0 for 40k km/year or more', () => {
@@ -17,13 +17,13 @@ describe('ScoringService', () => {
     });
 
     it('should interpolate for values between 10k-40k', () => {
-      // 25k km/year = halfway -> 10 pts
+      // 25k km/year on a 3-year car: 75000/3 = 25000 km/year -> 25 - ((25000-10000)/30000)*25 = 12.5
       const score = service.calculateMileageScore(75000, 2023, 2026);
-      expect(score).toBe(10);
+      expect(score).toBe(12.5);
     });
 
-    it('should return 20 for brand new car (age 0)', () => {
-      expect(service.calculateMileageScore(0, 2026, 2026)).toBe(20);
+    it('should return 25 for brand new car (age 0)', () => {
+      expect(service.calculateMileageScore(0, 2026, 2026)).toBe(25);
     });
   });
 

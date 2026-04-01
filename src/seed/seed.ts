@@ -29,19 +29,15 @@ async function seedPrices(db: mongoose.Connection, dataDir: string) {
 
   const rows = parseCsv(path.join(dataDir, 'turbo_az.csv'));
   const docs = rows
-    .filter((row) => row.price && parseFloat(row.price) > 0)
+    .filter((row) => row['Price'] && parseFloat(row['Price']) > 0)
     .map((row) => ({
-      brand: (row.brand ?? row.make ?? '').toLowerCase(),
-      model: (row.model ?? '').toLowerCase(),
-      year: parseInt(row.year, 10),
-      bodyType: (row.body_type ?? '').toLowerCase(),
-      engine: (row.engine ?? row.fuel_type ?? '').toLowerCase(),
-      transmission: (row.transmission ?? '').toLowerCase(),
-      drive: (row.drive ?? '').toUpperCase(),
-      color: (row.color ?? '').toLowerCase(),
-      city: (row.city ?? '').toLowerCase(),
-      price: parseFloat(row.price),
-      mileage: parseInt(row.mileage ?? '0', 10),
+      brand: (row['Brand'] ?? '').toLowerCase(),
+      model: (row['Model'] ?? '').toLowerCase(),
+      year: parseInt(row['Year'], 10),
+      engine: (row['Fuel Type'] ?? '').toLowerCase(),
+      color: (row['Color'] ?? '').toLowerCase(),
+      price: parseFloat(row['Price']),
+      mileage: parseInt(row['Distance'] ?? '0', 10),
     }));
 
   if (docs.length > 0) {
@@ -55,33 +51,34 @@ async function seedReliability(db: mongoose.Connection, dataDir: string) {
   await collection.deleteMany({});
 
   const rows = parseCsv(path.join(dataDir, 'reliability.csv'));
-  const docs = rows.map((row) => ({
-    brand: (row.brand ?? row.make ?? '').toLowerCase(),
-    model: (row.model ?? '').toLowerCase() || null,
-    tier: row.tier ?? 'D',
-  }));
+
+  const scores = rows
+    .map((row) => parseFloat(row['Overall Score'] ?? '0'))
+    .filter((s) => s > 0)
+    .sort((a, b) => b - a);
+
+  function getTier(score: number): string {
+    if (scores.length === 0) return 'D';
+    const rank = scores.indexOf(score);
+    const percentile = rank / scores.length;
+    if (percentile < 0.2) return 'S';
+    if (percentile < 0.4) return 'A';
+    if (percentile < 0.6) return 'B';
+    if (percentile < 0.8) return 'C';
+    return 'D';
+  }
+
+  const docs = rows
+    .filter((row) => row['Make'])
+    .map((row) => ({
+      brand: (row['Make'] ?? '').toLowerCase(),
+      model: (row['Model'] ?? '').toLowerCase() || null,
+      tier: getTier(parseFloat(row['Overall Score'] ?? '0')),
+    }));
 
   if (docs.length > 0) {
     await collection.insertMany(docs);
     console.log(`Seeded ${docs.length} reliability records`);
-  }
-}
-
-async function seedSafety(db: mongoose.Connection, dataDir: string) {
-  const collection = db.collection('car_safety');
-  await collection.deleteMany({});
-
-  const rows = parseCsv(path.join(dataDir, 'safety.csv'));
-  const docs = rows.map((row) => ({
-    brand: (row.brand ?? row.make ?? '').toLowerCase(),
-    model: (row.model ?? '').toLowerCase(),
-    year: parseInt(row.year ?? '0', 10),
-    stars: parseInt(row.stars ?? row.rating ?? '0', 10),
-  }));
-
-  if (docs.length > 0) {
-    await collection.insertMany(docs);
-    console.log(`Seeded ${docs.length} safety records`);
   }
 }
 
@@ -106,7 +103,7 @@ async function main() {
   const dataDir = process.argv[2];
   if (!dataDir) {
     console.error('Usage: ts-node src/seed/seed.ts <data-directory>');
-    console.error('Expected CSV files: turbo_az.csv, reliability.csv, safety.csv, depreciation.csv');
+    console.error('Expected CSV files: turbo_az.csv, reliability.csv, depreciation.csv');
     process.exit(1);
   }
 
@@ -116,7 +113,6 @@ async function main() {
   try {
     await seedPrices(conn.connection, dataDir);
     await seedReliability(conn.connection, dataDir);
-    await seedSafety(conn.connection, dataDir);
     await seedDepreciation(conn.connection, dataDir);
     console.log('Seeding complete');
   } finally {

@@ -3,7 +3,6 @@ export class ScoreBreakdownDto {
   ageScore: number;
   reliabilityScore: number;
   conditionScore: number;
-  safetyScore: number;
   depreciationScore: number;
   transmissionScore: number;
   driveScore: number;
