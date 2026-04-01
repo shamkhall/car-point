@@ -10,34 +10,107 @@ interface CsvRow {
 
 function parseCsv(filePath: string): CsvRow[] {
   const content = fs.readFileSync(filePath, 'utf-8');
-  const lines = content.split('\n').filter((line) => line.trim());
-  const headers = lines[0].split(',').map((h) => h.trim());
+  const lines: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (const char of content) {
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      current += char;
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (current.trim()) lines.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  if (current.trim()) lines.push(current.trim());
+
+  const headers = parseRow(lines[0]);
 
   return lines.slice(1).map((line) => {
-    const values = line.split(',').map((v) => v.trim());
+    const values = parseRow(line);
     const row: CsvRow = {};
     headers.forEach((header, i) => {
-      row[header] = values[i] ?? '';
+      row[header] = (values[i] ?? '').trim();
     });
     return row;
   });
 }
 
+function parseRow(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (const char of line) {
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function parseDistance(distance: string): number {
+  // "175 000 km" → 175000, "0 km" → 0
+  const cleaned = distance.replace(/\s/g, '').replace(/km/i, '');
+  return parseInt(cleaned, 10) || 0;
+}
+
+const TRANSMISSION_MAP: Record<string, string> = {
+  avtomat: 'automatic',
+  mexaniki: 'manual',
+  robot: 'semi-automatic',
+  variator: 'automatic',
+};
+
+const DRIVE_MAP: Record<string, string> = {
+  'ön': 'FWD',
+  tam: 'AWD',
+  arxa: 'RWD',
+};
+
+const FUEL_MAP: Record<string, string> = {
+  benzin: 'petrol',
+  dizel: 'diesel',
+  hibrid: 'hybrid',
+  'plug-in hibrid': 'hybrid',
+  elektro: 'hybrid',
+  qaz: 'LPG',
+};
+
+const NEW_MAP: Record<string, boolean> = {
+  'bəli': true,
+  xeyr: false,
+};
+
 async function seedPrices(db: mongoose.Connection, dataDir: string) {
   const collection = db.collection('car_prices');
   await collection.deleteMany({});
 
-  const rows = parseCsv(path.join(dataDir, 'turbo_az.csv'));
+  const rows = parseCsv(path.join(dataDir, 'turbo.csv'));
   const docs = rows
     .filter((row) => row['Price'] && parseFloat(row['Price']) > 0)
+    .filter((row) => row['Currency'] === 'AZN') // only AZN prices
     .map((row) => ({
       brand: (row['Brand'] ?? '').toLowerCase(),
       model: (row['Model'] ?? '').toLowerCase(),
       year: parseInt(row['Year'], 10),
-      engine: (row['Fuel Type'] ?? '').toLowerCase(),
+      bodyType: (row['Body Type'] ?? '').toLowerCase(),
+      engine: FUEL_MAP[(row['Fuel Type'] ?? '').toLowerCase()] ?? (row['Fuel Type'] ?? '').toLowerCase(),
+      transmission: TRANSMISSION_MAP[(row['Transmission'] ?? '').toLowerCase()] ?? (row['Transmission'] ?? '').toLowerCase(),
+      drive: DRIVE_MAP[(row['Drive Type'] ?? '').toLowerCase()] ?? (row['Drive Type'] ?? '').toUpperCase(),
       color: (row['Color'] ?? '').toLowerCase(),
+      city: (row['City'] ?? '').toLowerCase(),
       price: parseFloat(row['Price']),
-      mileage: parseInt(row['Distance'] ?? '0', 10),
+      mileage: parseDistance(row['Distance'] ?? '0'),
     }));
 
   if (docs.length > 0) {
@@ -58,7 +131,7 @@ async function seedReliability(db: mongoose.Connection, dataDir: string) {
     .sort((a, b) => b - a);
 
   function getTier(score: number): string {
-    if (scores.length === 0) return 'D';
+    if (scores.length === 0 || score <= 0) return 'D';
     const rank = scores.indexOf(score);
     const percentile = rank / scores.length;
     if (percentile < 0.2) return 'S';
@@ -83,19 +156,59 @@ async function seedReliability(db: mongoose.Connection, dataDir: string) {
 }
 
 async function seedDepreciation(db: mongoose.Connection, dataDir: string) {
+  // Calculate depreciation from turbo.az data:
+  // For each brand+model, compare avg price of newer cars (0-2 years old) vs older (5-7 years old)
+  const rows = parseCsv(path.join(dataDir, 'turbo.csv'));
+  const currentYear = new Date().getFullYear();
+
+  const pricesByBrandModel: Record<string, { newPrices: number[]; oldPrices: number[] }> = {};
+
+  for (const row of rows) {
+    if (!row['Price'] || parseFloat(row['Price']) <= 0) continue;
+    if (row['Currency'] !== 'AZN') continue;
+
+    const brand = (row['Brand'] ?? '').toLowerCase();
+    const model = (row['Model'] ?? '').toLowerCase();
+    const year = parseInt(row['Year'], 10);
+    const price = parseFloat(row['Price']);
+    const key = `${brand}|${model}`;
+    const age = currentYear - year;
+
+    if (!pricesByBrandModel[key]) {
+      pricesByBrandModel[key] = { newPrices: [], oldPrices: [] };
+    }
+
+    if (age <= 2) {
+      pricesByBrandModel[key].newPrices.push(price);
+    } else if (age >= 5 && age <= 7) {
+      pricesByBrandModel[key].oldPrices.push(price);
+    }
+  }
+
   const collection = db.collection('car_depreciation');
   await collection.deleteMany({});
 
-  const rows = parseCsv(path.join(dataDir, 'depreciation.csv'));
-  const docs = rows.map((row) => ({
-    brand: (row.brand ?? row.make ?? '').toLowerCase(),
-    model: (row.model ?? '').toLowerCase(),
-    retentionPercent: parseFloat(row.retention_percent ?? '0'),
-  }));
+  const docs: { brand: string; model: string; retentionPercent: number }[] = [];
+
+  for (const [key, data] of Object.entries(pricesByBrandModel)) {
+    if (data.newPrices.length < 2 || data.oldPrices.length < 2) continue;
+
+    const avgNew = data.newPrices.reduce((a, b) => a + b, 0) / data.newPrices.length;
+    const avgOld = data.oldPrices.reduce((a, b) => a + b, 0) / data.oldPrices.length;
+
+    if (avgNew <= 0) continue;
+
+    const [brand, model] = key.split('|');
+    const retention = Math.round((avgOld / avgNew) * 100);
+
+    docs.push({ brand, model, retentionPercent: Math.min(retention, 100) });
+  }
 
   if (docs.length > 0) {
     await collection.insertMany(docs);
-    console.log(`Seeded ${docs.length} depreciation records`);
+    console.log(`Seeded ${docs.length} depreciation records (calculated from price data)`);
+  } else {
+    console.log('No depreciation data could be calculated (need 2+ listings per age group)');
   }
 }
 
@@ -103,7 +216,7 @@ async function main() {
   const dataDir = process.argv[2];
   if (!dataDir) {
     console.error('Usage: ts-node src/seed/seed.ts <data-directory>');
-    console.error('Expected CSV files: turbo_az.csv, reliability.csv, depreciation.csv');
+    console.error('Expected CSV files: turbo.csv, reliability.csv');
     process.exit(1);
   }
 
