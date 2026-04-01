@@ -26,8 +26,5 @@ yarn-error.log*
 # coverage
 /coverage
 
-# docs
-/docs
-
 # data
 /data
