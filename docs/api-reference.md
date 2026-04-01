@@ -139,10 +139,10 @@ message ScoreBreakdown {
 | ------------------- | ----- | ---------- | ------------------------------- |
 | `mileage_score`     | int32 | 25         | Score based on total mileage    |
 | `age_score`         | int32 | 15         | Score based on vehicle age      |
-| `reliability_score` | int32 | 15         | Score based on brand reliability|
+| `reliability_score` | int32 | 20         | Score based on brand reliability|
 | `condition_score`   | int32 | 15         | Score based on reported condition|
 | `depreciation_score`| int32 | 10         | Score based on depreciation rate|
-| `transmission_score`| int32 | 10         | Score based on transmission type|
+| `transmission_score`| int32 | 5          | Score based on transmission type|
 | `drive_score`       | int32 | 5          | Score based on drivetrain type  |
 | `engine_score`      | int32 | 5          | Score based on engine/fuel type |
 
