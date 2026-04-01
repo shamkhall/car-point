@@ -35,6 +35,7 @@ message PriceInfo {
   double listed = 1;
   double average = 2;
   double deviation = 3;
+  string price_status = 4;
 }
 
 message ScoreBreakdown {

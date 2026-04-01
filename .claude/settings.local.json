@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /tmp/nest-check)",
+      "Read(//tmp/**)",
+      "Bash(nest new:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm run:*)",
+      "Bash(ls:*)",
+      "Bash(npm test:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI:/c/Program Files \\(x86\\)/GitHub CLI\")",
+      "Bash(gh auth:*)",
+      "Bash(gh pr create --base main --head feat/init-nestjs-microservice --title 'Initialize NestJS gRPC microservice with MongoDB' --body ':*)",
+      "WebSearch",
+      "Bash(git checkout:*)",
+      "Bash(npx jest:*)",
+      "Bash(node:*)",
+      "Bash(MONGODB_URI=\"mongodb://root:x534Iwnq3VnkrCfVGLigA42P@10.156.0.2:27017/cars?authSource=admin\" npx ts-node:*)",
+      "Bash(MONGODB_URI=\"mongodb://root:x534Iwnq3VnkrCfVGLigA42P@10.156.0.2:27017/cars?authSource=admin\" npm run start)",
+      "Bash(npm list:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(git rm:*)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 34532 //F)",
+      "Bash(MONGODB_URI=\"mongodb://root:x534Iwnq3VnkrCfVGLigA42P@10.156.0.2:27017/cars?authSource=admin\" node dist/main.js)"
+    ]
+  }
+}

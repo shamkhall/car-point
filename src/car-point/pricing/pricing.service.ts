@@ -42,7 +42,7 @@ export class PricingService {
     }
 
     if (!result.length) {
-      return { listed: query.listedPrice, average: null, deviation: 0 };
+      return { listed: query.listedPrice, average: null, deviation: 0, priceStatus: 'Fair Price' };
     }
 
     const average = Math.round(result[0].avgPrice);
@@ -52,6 +52,13 @@ export class PricingService {
       listed: query.listedPrice,
       average,
       deviation,
+      priceStatus: this.getPriceStatus(deviation),
     };
+  }
+
+  private getPriceStatus(deviation: number): string {
+    if (deviation < -15) return 'Great Deal';
+    if (deviation > 15) return 'Overpriced';
+    return 'Fair Price';
   }
 }

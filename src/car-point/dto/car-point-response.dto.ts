@@ -13,6 +13,7 @@ export class PriceInfoDto {
   listed: number;
   average: number | null;
   deviation: number;
+  priceStatus: string;
 }
 
 export class CarPointResponseDto {

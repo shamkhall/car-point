@@ -27,6 +27,7 @@ describe('CarPointService', () => {
         listed: 16200,
         average: 18500,
         deviation: -12.43,
+        priceStatus: 'Fair Price',
       }),
     } as any;
 
