@@ -47,8 +47,30 @@ describe('PricingService', () => {
     expect(result.deviation).toBe(0);
   });
 
+  it('should fallback to ±3 year range when exact year not found', async () => {
+    mockModel.aggregate
+      .mockResolvedValueOnce([]) // exact year: no results
+      .mockResolvedValueOnce([{ avgPrice: 8000 }]); // ±3 year fallback
+
+    const result = await service.getPriceInfo({
+      brand: 'BMW',
+      model: '528',
+      year: 1998,
+      bodyType: 'sedan',
+      engine: 'petrol',
+      transmission: 'automatic',
+      drive: 'RWD',
+      listedPrice: 7000,
+    });
+
+    expect(result.average).toBe(8000);
+    expect(mockModel.aggregate).toHaveBeenCalledTimes(2);
+  });
+
   it('should return null average and 0 deviation when no data found', async () => {
-    mockModel.aggregate.mockResolvedValue([]);
+    mockModel.aggregate
+      .mockResolvedValueOnce([])  // exact year
+      .mockResolvedValueOnce([]); // ±3 year fallback
 
     const result = await service.getPriceInfo({
       brand: 'Unknown',

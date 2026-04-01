@@ -34,9 +34,9 @@ export class PricingService {
     ]);
 
     if (!result.length) {
-      // Broader fallback: brand + model only
+      // Fallback: brand + model within ±3 years
       result = await this.priceModel.aggregate([
-        { $match: { brand: filter.brand, model: filter.model } },
+        { $match: { brand: filter.brand, model: filter.model, year: { $gte: query.year - 3, $lte: query.year + 3 } } },
         { $group: { _id: null, avgPrice: { $avg: '$price' } } },
       ]);
     }
