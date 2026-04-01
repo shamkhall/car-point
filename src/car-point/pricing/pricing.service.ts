@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CarPrice } from '../schemas/car-price.schema.js';
-import { PriceInfoDto } from '../dto/car-point-response.dto.js';
+import { PriceInfoDto, PriceStatus } from '../dto/car-point-response.dto.js';
 
 export interface PriceQuery {
   brand: string;
@@ -42,7 +42,7 @@ export class PricingService {
     }
 
     if (!result.length) {
-      return { listed: query.listedPrice, average: null, deviation: 0, priceStatus: 'Fair Price' };
+      return { listed: query.listedPrice, average: null, deviation: 0, priceStatus: PriceStatus.FAIR_PRICE };
     }
 
     const average = Math.round(result[0].avgPrice);
@@ -56,9 +56,9 @@ export class PricingService {
     };
   }
 
-  private getPriceStatus(deviation: number): string {
-    if (deviation < -15) return 'Great Deal';
-    if (deviation > 15) return 'Overpriced';
-    return 'Fair Price';
+  private getPriceStatus(deviation: number): PriceStatus {
+    if (deviation < -15) return PriceStatus.GREAT_DEAL;
+    if (deviation > 15) return PriceStatus.OVERPRICED;
+    return PriceStatus.FAIR_PRICE;
   }
 }

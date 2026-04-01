@@ -1,4 +1,5 @@
 import { ScoringService } from './scoring.service.js';
+import { QualityStatus } from '../dto/car-point-response.dto.js';
 
 describe('ScoringService', () => {
   let service: ScoringService;
@@ -86,19 +87,19 @@ describe('ScoringService', () => {
   });
 
   describe('getQualityStatus', () => {
-    it('should return Excellent for 71-100', () => {
-      expect(service.getQualityStatus(71)).toBe('Excellent');
-      expect(service.getQualityStatus(100)).toBe('Excellent');
+    it('should return EXCELLENT for 71-100', () => {
+      expect(service.getQualityStatus(71)).toBe(QualityStatus.EXCELLENT);
+      expect(service.getQualityStatus(100)).toBe(QualityStatus.EXCELLENT);
     });
 
-    it('should return Good for 41-70', () => {
-      expect(service.getQualityStatus(41)).toBe('Good');
-      expect(service.getQualityStatus(70)).toBe('Good');
+    it('should return GOOD for 41-70', () => {
+      expect(service.getQualityStatus(41)).toBe(QualityStatus.GOOD);
+      expect(service.getQualityStatus(70)).toBe(QualityStatus.GOOD);
     });
 
-    it('should return Poor for 1-40', () => {
-      expect(service.getQualityStatus(1)).toBe('Poor');
-      expect(service.getQualityStatus(40)).toBe('Poor');
+    it('should return POOR for 1-40', () => {
+      expect(service.getQualityStatus(1)).toBe(QualityStatus.POOR);
+      expect(service.getQualityStatus(40)).toBe(QualityStatus.POOR);
     });
   });
 });

@@ -26,16 +26,28 @@ message CarPointRequest {
 
 message CarPointResponse {
   int32 quality_score = 1;
-  string quality_status = 2;
+  QualityStatus quality_status = 2;
   PriceInfo price = 3;
   ScoreBreakdown score_breakdown = 4;
+}
+
+enum QualityStatus {
+  GOOD = 0;
+  POOR = 1;
+  EXCELLENT = 2;
+}
+
+enum PriceStatus {
+  FAIR_PRICE = 0;
+  GREAT_DEAL = 1;
+  OVERPRICED = 2;
 }
 
 message PriceInfo {
   double listed = 1;
   double average = 2;
   double deviation = 3;
-  string price_status = 4;
+  PriceStatus price_status = 4;
 }
 
 message ScoreBreakdown {

@@ -5,6 +5,7 @@ import {
   DRIVE_SCORES,
   ENGINE_SCORES,
 } from './scoring.config.js';
+import { QualityStatus } from '../dto/car-point-response.dto.js';
 
 @Injectable()
 export class ScoringService {
@@ -48,9 +49,9 @@ export class ScoringService {
     return Math.max(1, Math.min(100, Math.round(total)));
   }
 
-  getQualityStatus(score: number): string {
-    if (score >= 71) return 'Excellent';
-    if (score >= 41) return 'Good';
-    return 'Poor';
+  getQualityStatus(score: number): QualityStatus {
+    if (score >= 71) return QualityStatus.EXCELLENT;
+    if (score >= 41) return QualityStatus.GOOD;
+    return QualityStatus.POOR;
   }
 }

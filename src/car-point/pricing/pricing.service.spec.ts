@@ -1,4 +1,5 @@
 import { PricingService } from './pricing.service.js';
+import { PriceStatus } from '../dto/car-point-response.dto.js';
 
 describe('PricingService', () => {
   let service: PricingService;
@@ -28,7 +29,7 @@ describe('PricingService', () => {
     expect(result.listed).toBe(16200);
     expect(result.average).toBe(18500);
     expect(result.deviation).toBeCloseTo(-12.43, 1);
-    expect(result.priceStatus).toBe('Fair Price');
+    expect(result.priceStatus).toBe(PriceStatus.FAIR_PRICE);
   });
 
   it('should return 0 deviation when average matches listed', async () => {
@@ -66,7 +67,7 @@ describe('PricingService', () => {
 
     expect(result.average).toBe(8000);
     expect(result.deviation).toBe(-12.5);
-    expect(result.priceStatus).toBe('Fair Price');
+    expect(result.priceStatus).toBe(PriceStatus.FAIR_PRICE);
     expect(mockModel.aggregate).toHaveBeenCalledTimes(2);
   });
 
@@ -88,7 +89,7 @@ describe('PricingService', () => {
 
     expect(result.average).toBeNull();
     expect(result.deviation).toBe(0);
-    expect(result.priceStatus).toBe('Fair Price');
+    expect(result.priceStatus).toBe(PriceStatus.FAIR_PRICE);
   });
 
   it('should return Great Deal for deviation below -15%', async () => {
@@ -105,7 +106,7 @@ describe('PricingService', () => {
       listedPrice: 7000,
     });
 
-    expect(result.priceStatus).toBe('Great Deal');
+    expect(result.priceStatus).toBe(PriceStatus.GREAT_DEAL);
   });
 
   it('should return Overpriced for deviation above 15%', async () => {
@@ -122,6 +123,6 @@ describe('PricingService', () => {
       listedPrice: 13000,
     });
 
-    expect(result.priceStatus).toBe('Overpriced');
+    expect(result.priceStatus).toBe(PriceStatus.OVERPRICED);
   });
 });

@@ -3,6 +3,7 @@ import { ScoringService } from './scoring/scoring.service.js';
 import { ReliabilityService } from './reliability/reliability.service.js';
 import { DepreciationService } from './depreciation/depreciation.service.js';
 import { PricingService } from './pricing/pricing.service.js';
+import { PriceStatus } from './dto/car-point-response.dto.js';
 
 describe('CarPointService', () => {
   let service: CarPointService;
@@ -27,7 +28,7 @@ describe('CarPointService', () => {
         listed: 16200,
         average: 18500,
         deviation: -12.43,
-        priceStatus: 'Fair Price',
+        priceStatus: PriceStatus.FAIR_PRICE,
       }),
     } as any;
 
