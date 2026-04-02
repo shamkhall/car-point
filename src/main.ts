@@ -11,7 +11,7 @@ async function bootstrap() {
       options: {
         package: 'carpoint',
         protoPath: join(__dirname, '../proto/car-point.proto'),
-        url: process.env.GRPC_URL ?? '0.0.0.0:5000',
+        url: process.env.GRPC_URL ?? `0.0.0.0:${process.env.PORT ?? '5000'}`,
       },
     },
   );
